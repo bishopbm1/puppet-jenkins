@@ -43,6 +43,8 @@ Puppet::X::Jenkins::Type::Cli.newtype(:jenkins_job) do
               d2.write(newvalue)
               d2.flush
 
+              Puppet.debug("Brad d1.path: #{d1.path}")
+              Puppet.debug("Brad d2.path: #{d2.path}")
               send @resource[:loglevel], "\n#{diff(d1.path, d2.path)}"
 
               d2.close
