@@ -64,7 +64,7 @@ Puppet::X::Jenkins::Type::Cli.newtype(:jenkins_job) do
     # 'is'     = the value that was discovered by puppet on target node
     # 'should' = value supplied by manifest during catalog compilation
     def insync?(is)
-      is = is + "\n"
+      is = is + "\n" unless is.end_with?("\n")
       Puppet.debug("Brad is: #{is}")
       Puppet.debug("Brad should: #{should}")
       is_insync = super(is)
