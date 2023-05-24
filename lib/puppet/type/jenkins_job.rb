@@ -21,42 +21,61 @@ Puppet::X::Jenkins::Type::Cli.newtype(:jenkins_job) do
 
   newproperty(:config) do
     include Puppet::Util::Diff
-    include Puppet::Util::Checksums
+    # include Puppet::Util::Checksums
 
     desc 'XML job configuration string'
 
-    def change_to_s(currentvalue, newvalue)
-      if currentvalue == :absent
-        'created'
-      elsif newvalue == :absent
-        'removed'
-      else
-        return 'left unchanged' if @resource[:replace] == false
+    # def change_to_s(currentvalue, newvalue)
+    #   if currentvalue == :absent
+    #     'created'
+    #   elsif newvalue == :absent
+    #     'removed'
+    #   else
+    #     return 'left unchanged' if @resource[:replace] == false
 
-        if Puppet[:show_diff] && resource[:show_diff]
-          # XXX this really should be turned into a helper method and submitted
-          # to # core puppet
-          Tempfile.open('puppet-file') do |d1|
-            d1.write(currentvalue)
-            d1.flush
-            Tempfile.open('puppet-file') do |d2|
-              d2.write(newvalue)
-              d2.flush
+    #     if Puppet[:show_diff] && resource[:show_diff]
+    #       # XXX this really should be turned into a helper method and submitted
+    #       # to # core puppet
+    #       Puppet.debug("Brad currentvalue: #{currentvalue}")
+    #       Puppet.debug("Brad newvalue: #{newvalue}")
+    #       send @resource[:loglevel], "\n#{diff(currentvalue, newvalue)}"
+    #       # Tempfile.open('puppet-file') do |d1|
+    #       #   d1.write(currentvalue)
+    #       #   d1.flush
+    #       #   Tempfile.open('puppet-file') do |d2|
+    #       #     d2.write(newvalue)
+    #       #     d2.flush
 
-              Puppet.debug("Brad d1.path: #{d1.path}")
-              Puppet.debug("Brad d2.path: #{d2.path}")
-              send @resource[:loglevel], "\n#{diff(d1.path, d2.path)}"
+    #       #     Puppet.debug("Brad d1.path: #{d1.path}")
+    #       #     Puppet.debug("Brad d2.path: #{d2.path}")
+    #       #     send @resource[:loglevel], "\n#{diff(d1.path, d2.path)}"
 
-              d2.close
-              d2.unlink
-            end
-            d1.close
-            d1.unlink
-          end
+    #       #     d2.close
+    #       #     d2.unlink
+    #       #   end
+    #       #   d1.close
+    #       #   d1.unlink
+    #       # end
 
-        end
-        "content changed '{md5}#{md5(currentvalue)}' to '{md5}#{md5(newvalue)}'"
+    #     end
+    #     "content changed '{md5}#{md5(currentvalue)}' to '{md5}#{md5(newvalue)}'"
+    #   end
+    # end
+    # 'is'     = the value that was discovered by puppet on target node
+    # 'should' = value supplied by manifest during catalog compilation
+    def insync?(is)
+      is = is + "\n"
+      Puppet.debug("Brad is: #{is}")
+      Puppet.debug("Brad should: #{should}")
+      is_insync = super(is)
+      Puppet.debug("Brad is_insync: #{is_insync}")
+      # show diff of XML :)
+      unless is_insync
+        # diff the two strings
+        diff_output = lcs_diff(is, should)
+        send(@resource[:loglevel], "\n" + diff_output)
       end
+      is_insync
     end
   end
 
